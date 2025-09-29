@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="light-mode">
+    <div class="background-animation"></div>
+    
+    <!-- Confetti Animation -->
+    <div id="confetti-container"></div>
+    
+    <div class="container">
+        <!-- Signup Form -->
+        <div id="signup-section" class="form-section">
+            <div class="form-header">
+                <i class="fas fa-tasks"></i>
+                <h2>Create Account</h2>
+            </div>
+            <form id="signup-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="signup-username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="signup-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+            </form>
+            <p class="form-switch">Already have an account? <a href="#" id="show-login">Login Here</a></p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-section" class="form-section hidden">
+            <div class="form-header">
+                <i class="fas fa-sign-in-alt"></i>
+                <h2>Welcome Back</h2>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="login-username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            <p class="form-switch">Don't have an account? <a href="#" id="show-signup">Sign Up Here</a></p>
+        </div>
+
+        <!-- Task Manager (Visible after login) -->
+        <div id="task-manager" class="hidden">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="user-info">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Welcome, <span id="user-name"></span>!</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <span class="progress-text" id="progress-text">0%</span>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <button id="theme-toggle" class="btn-theme">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <button id="export-btn" class="btn-export" title="Export Tasks">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <input type="file" id="import-file" accept=".json" hidden>
+                        <button id="import-btn" class="btn-import" title="Import Tasks">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                        <button id="logout-btn" class="btn-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Search and Controls -->
+            <div class="controls-section">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search tasks...">
+                </div>
+                <div class="sort-container">
+                    <select id="sort-select">
+                        <option value="date">Sort by Date</option>
+                        <option value="name">Sort by Name</option>
+                        <option value="priority">Sort by Priority</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Add Task Section -->
+            <div class="task-input-section">
+                <div class="task-input">
+                    <input type="text" id="new-task" placeholder="Enter task title...">
+                    <textarea id="task-description" placeholder="Add description (optional)"></textarea>
+                    
+                    <div class="task-meta-inputs">
+                        <div class="input-group-small">
+                            <label>Priority:</label>
+                            <select id="task-priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group-small">
+                            <label>Category:</label>
+                            <select id="task-category">
+                                <option value="personal">Personal</option>
+                                <option value="work">Work</option>
+                                <option value="study">Study</option>
+                                <option value="health">Health</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group-small">
+                            <label>Due Date:</label>
+                            <input type="date" id="task-due-date">
+                        </div>
+                    </div>
+
+                    <button id="add-task-btn" class="btn-add">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="task-filters">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-list"></i> All Tasks
+                </button>
+                <button class="filter-btn" data-filter="pending">
+                    <i class="fas fa-clock"></i> Pending
+                </button>
+                <button class="filter-btn" data-filter="completed">
+                    <i class="fas fa-check-circle"></i> Completed
+                </button>
+                <button class="filter-btn" data-filter="overdue">
+                    <i class="fas fa-exclamation-triangle"></i> Overdue
+                </button>
+            </div>
+
+            <!-- Task List -->
+            <div class="task-list-container">
+                <ul id="task-list"></ul>
+            </div>
+
+            <!-- Statistics -->
+            <div class="task-stats">
+                <div class="stat-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>Total: <strong id="total-tasks">0</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending: <strong id="pending-tasks">0</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Completed: <strong id="completed-tasks">0</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Overdue: <strong id="overdue-tasks">0</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Task Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="task-detail">
+                    <h4 id="modal-task-title"></h4>
+                    <div class="task-meta-info">
+                        <span class="task-meta" id="modal-task-date"></span>
+                        <span class="priority-badge" id="modal-task-priority"></span>
+                        <span class="category-badge" id="modal-task-category"></span>
+                    </div>
+                    
+                    <div class="due-date-info">
+                        <i class="fas fa-calendar"></i>
+                        <span id="modal-task-due-date"></span>
+                    </div>
+                    
+                    <div class="task-description">
+                        <label>Description:</label>
+                        <p id="modal-task-description"></p>
+                    </div>
+                    
+                    <div class="subtasks-section">
+                        <label>Checklist:</label>
+                        <div id="subtasks-list"></div>
+                        <div class="add-subtask">
+                            <input type="text" id="new-subtask" placeholder="Add subtask...">
+                            <button id="add-subtask-btn" class="btn-small">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-status">
+                        <label>Status:</label>
+                        <span id="modal-task-status" class="status-badge"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="edit-task-btn" class="btn-edit">
+                    <i class="fas fa-edit"></i> Edit Task
+                </button>
+                <button id="complete-task-btn" class="btn-complete">
+                    <i class="fas fa-check"></i> Mark Complete
+                </button>
+                <button id="reopen-task-btn" class="btn-reopen hidden">
+                    <i class="fas fa-redo"></i> Reopen Task
+                </button>
+                <button id="delete-task-btn" class="btn-delete">
+                    <i class="fas fa-trash"></i> Delete Task
+                </button>
+                <button class="btn-back" onclick="taskManager.closeModal()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Task</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-task-form">
+                    <div class="input-group">
+                        <label>Task Title:</label>
+                        <input type="text" id="edit-task-title" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Description:</label>
+                        <textarea id="edit-task-description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="input-group-row">
+                        <div class="input-group-small">
+                            <label>Priority:</label>
+                            <select id="edit-task-priority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group-small">
+                            <label>Category:</label>
+                            <select id="edit-task-category">
+                                <option value="personal">Personal</option>
+                                <option value="work">Work</option>
+                                <option value="study">Study</option>
+                                <option value="health">Health</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Due Date:</label>
+                        <input type="date" id="edit-task-due-date">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-actions">
+                <button id="save-edit-btn" class="btn-save">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button class="btn-cancel" onclick="taskManager.closeEditModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
