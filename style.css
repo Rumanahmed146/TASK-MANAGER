@@ -1,3 +1,107 @@
+/* Animated Gradient Background */
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Logo Styles */
+.logo-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+.logo-text {
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .logo-text {
+    color: #e2e8f0;
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-5px) rotate(5deg);
+    }
+}
+
+/* Body with animated gradient */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Dark mode gradient */
+.dark-mode {
+    background: linear-gradient(-45deg, #1a202c, #2d3748, #4a5568, #2c5282);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+}
+
+/* Container glass effect */
+.container {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 800px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .container {
+    background: rgba(45, 55, 72, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* REST OF YOUR EXISTING CSS YAHIN SE CONTINUE HOGA */
+/* ... aapka existing CSS code yahan se shuru hoga ... */
+
+
+
 * {
     margin: 0;
     padding: 0;
@@ -17,7 +121,7 @@
     --dark: #343a40;
     --gray: #6c757d;
     --border: #e9ecef;
-    --bg-color: #ffffff;
+    --bg-color: #b3e7e4;
     --text-color: #333333;
     --card-bg: #ffffff;
     --shadow: rgba(0, 0, 0, 0.1);
@@ -1232,4 +1336,19 @@ body {
     .progress-container {
         margin-left: 0;
     }
+}
+
+.logo-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-slogan {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+}
+
+.dark-mode .logo-slogan {
+    color: rgba(226, 232, 240, 0.8);
 }
