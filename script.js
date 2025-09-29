@@ -7,6 +7,7 @@ class TaskManager {
         this.currentModalTaskId = null;
         this.currentEditTaskId = null;
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+        this.currentSearchQuery = '';
         
         this.initializeEventListeners();
         this.checkLoginStatus();
@@ -23,6 +24,7 @@ class TaskManager {
             e.preventDefault();
             this.showLogin();
         });
+        
         document.getElementById('show-signup').addEventListener('click', (e) => {
             e.preventDefault();
             this.showSignup();
@@ -37,7 +39,8 @@ class TaskManager {
         // Filters
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.filterTasks(e.target.dataset.filter);
+                const filter = e.target.getAttribute('data-filter');
+                this.filterTasks(filter);
             });
         });
         
@@ -50,10 +53,15 @@ class TaskManager {
         document.getElementById('import-file').addEventListener('change', (e) => this.importTasks(e));
         
         // Search
-        document.getElementById('search-input').addEventListener('input', (e) => this.searchTasks(e.target.value));
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            this.currentSearchQuery = e.target.value.toLowerCase();
+            this.renderTasks();
+        });
         
         // Sort
-        document.getElementById('sort-select').addEventListener('change', (e) => this.sortTasks(e.target.value));
+        document.getElementById('sort-select').addEventListener('change', (e) => {
+            this.sortTasks(e.target.value);
+        });
         
         // Modal events
         document.querySelector('.close-modal').addEventListener('click', () => this.closeModal());
@@ -66,7 +74,10 @@ class TaskManager {
         // Subtasks
         document.getElementById('add-subtask-btn').addEventListener('click', () => this.addSubtask());
         document.getElementById('new-subtask').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addSubtask();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.addSubtask();
+            }
         });
         
         // Close modal when clicking outside
@@ -84,6 +95,9 @@ class TaskManager {
     }
 
     initTheme() {
+        const savedTheme = localStorage.getItem('darkMode');
+        this.isDarkMode = savedTheme === 'true';
+        
         if (this.isDarkMode) {
             document.body.classList.add('dark-mode');
             document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun"></i>';
@@ -100,17 +114,30 @@ class TaskManager {
         if (this.isDarkMode) {
             document.body.classList.add('dark-mode');
             document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun"></i>';
+            this.showNotification('Dark mode enabled', 'info');
         } else {
             document.body.classList.remove('dark-mode');
             document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-moon"></i>';
+            this.showNotification('Light mode enabled', 'info');
         }
     }
 
     handleSignup(e) {
         e.preventDefault();
-        const username = document.getElementById('signup-username').value;
-        const email = document.getElementById('signup-email').value;
+        const username = document.getElementById('signup-username').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
         const password = document.getElementById('signup-password').value;
+
+        // Validation
+        if (username.length < 3) {
+            this.showNotification('Username must be at least 3 characters long!', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            this.showNotification('Password must be at least 6 characters long!', 'error');
+            return;
+        }
 
         if (this.users.find(user => user.username === username)) {
             this.showNotification('Username already exists!', 'error');
@@ -133,7 +160,7 @@ class TaskManager {
 
     handleLogin(e) {
         e.preventDefault();
-        const username = document.getElementById('login-username').value;
+        const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
 
         const user = this.users.find(u => u.username === username && u.password === password);
@@ -230,7 +257,18 @@ class TaskManager {
         taskList.innerHTML = '';
 
         const userTasks = this.tasks[this.currentUser.username] || [];
-        let filteredTasks = this.filterTasksByType(userTasks, this.currentFilter);
+        
+        // Apply search filter
+        let filteredTasks = userTasks;
+        if (this.currentSearchQuery) {
+            filteredTasks = userTasks.filter(task => 
+                task.text.toLowerCase().includes(this.currentSearchQuery) ||
+                task.description.toLowerCase().includes(this.currentSearchQuery)
+            );
+        }
+        
+        // Apply type filter
+        filteredTasks = this.filterTasksByType(filteredTasks, this.currentFilter);
 
         if (filteredTasks.length === 0) {
             taskList.innerHTML = `
@@ -366,28 +404,37 @@ class TaskManager {
         const subtasksList = document.getElementById('subtasks-list');
         subtasksList.innerHTML = '';
         
-        task.subtasks.forEach((subtask, index) => {
-            const subtaskItem = document.createElement('div');
-            subtaskItem.className = `subtask-item ${subtask.completed ? 'completed' : ''}`;
-            subtaskItem.innerHTML = `
-                <input type="checkbox" class="subtask-checkbox" ${subtask.completed ? 'checked' : ''} 
-                       onchange="taskManager.toggleSubtask(${task.id}, ${index})">
-                <span class="subtask-text">${subtask.text}</span>
-            `;
-            subtasksList.appendChild(subtaskItem);
-        });
+        if (task.subtasks && task.subtasks.length > 0) {
+            task.subtasks.forEach((subtask, index) => {
+                const subtaskItem = document.createElement('div');
+                subtaskItem.className = `subtask-item ${subtask.completed ? 'completed' : ''}`;
+                subtaskItem.innerHTML = `
+                    <input type="checkbox" class="subtask-checkbox" ${subtask.completed ? 'checked' : ''} 
+                           onchange="taskManager.toggleSubtask(${task.id}, ${index})">
+                    <span class="subtask-text">${subtask.text}</span>
+                `;
+                subtasksList.appendChild(subtaskItem);
+            });
+        }
     }
 
     addSubtask() {
         const subtaskInput = document.getElementById('new-subtask');
         const subtaskText = subtaskInput.value.trim();
         
-        if (!subtaskText || !this.currentModalTaskId) return;
+        if (!subtaskText || !this.currentModalTaskId) {
+            this.showNotification('Please enter subtask text!', 'error');
+            return;
+        }
         
         const userTasks = this.tasks[this.currentUser.username];
         const task = userTasks.find(t => t.id === this.currentModalTaskId);
         
         if (task) {
+            if (!task.subtasks) {
+                task.subtasks = [];
+            }
+            
             task.subtasks.push({
                 text: subtaskText,
                 completed: false
@@ -404,7 +451,7 @@ class TaskManager {
         const userTasks = this.tasks[this.currentUser.username];
         const task = userTasks.find(t => t.id === taskId);
         
-        if (task && task.subtasks[subtaskIndex]) {
+        if (task && task.subtasks && task.subtasks[subtaskIndex]) {
             task.subtasks[subtaskIndex].completed = !task.subtasks[subtaskIndex].completed;
             localStorage.setItem('tasks', JSON.stringify(this.tasks));
             
@@ -458,8 +505,14 @@ class TaskManager {
         const task = userTasks.find(t => t.id === this.currentEditTaskId);
         
         if (task) {
-            task.text = document.getElementById('edit-task-title').value;
-            task.description = document.getElementById('edit-task-description').value;
+            const newTitle = document.getElementById('edit-task-title').value.trim();
+            if (!newTitle) {
+                this.showNotification('Task title cannot be empty!', 'error');
+                return;
+            }
+            
+            task.text = newTitle;
+            task.description = document.getElementById('edit-task-description').value.trim();
             task.priority = document.getElementById('edit-task-priority').value;
             task.category = document.getElementById('edit-task-category').value;
             task.dueDate = document.getElementById('edit-task-due-date').value;
@@ -528,22 +581,15 @@ class TaskManager {
 
     deleteTask(taskId, fromModal = false) {
         if (confirm('Are you sure you want to delete this task?')) {
-            const taskElement = document.querySelector(`[onclick*="taskManager.openTaskModal(${taskId})"]`)?.closest('.task-item');
-            if (taskElement) {
-                taskElement.classList.add('deleting');
-            }
+            this.tasks[this.currentUser.username] = this.tasks[this.currentUser.username].filter(t => t.id !== taskId);
+            localStorage.setItem('tasks', JSON.stringify(this.tasks));
             
-            setTimeout(() => {
-                this.tasks[this.currentUser.username] = this.tasks[this.currentUser.username].filter(t => t.id !== taskId);
-                localStorage.setItem('tasks', JSON.stringify(this.tasks));
-                
-                this.renderTasks();
-                this.showNotification('Task deleted successfully!', 'success');
-                
-                if (fromModal) {
-                    this.closeModal();
-                }
-            }, 300);
+            this.renderTasks();
+            this.showNotification('Task deleted successfully!', 'success');
+            
+            if (fromModal) {
+                this.closeModal();
+            }
         }
     }
 
@@ -551,11 +597,6 @@ class TaskManager {
         this.currentFilter = filter;
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-        this.renderTasks();
-    }
-
-    searchTasks(query) {
-        this.currentSearchQuery = query.toLowerCase();
         this.renderTasks();
     }
 
@@ -609,15 +650,22 @@ class TaskManager {
         const hasOverdue = userTasks.some(task => !task.completed && this.isOverdue(task));
         
         const overdueBtn = document.querySelector('[data-filter="overdue"]');
-        if (hasOverdue) {
-            overdueBtn.classList.add('has-overdue');
-        } else {
-            overdueBtn.classList.remove('has-overdue');
+        if (overdueBtn) {
+            if (hasOverdue) {
+                overdueBtn.classList.add('has-overdue');
+            } else {
+                overdueBtn.classList.remove('has-overdue');
+            }
         }
     }
 
     exportTasks() {
         const userTasks = this.tasks[this.currentUser.username] || [];
+        if (userTasks.length === 0) {
+            this.showNotification('No tasks to export!', 'warning');
+            return;
+        }
+        
         const dataStr = JSON.stringify(userTasks, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
         
@@ -695,7 +743,11 @@ class TaskManager {
     showNotification(message, type = 'info') {
         // Remove existing notifications
         const existingNotifications = document.querySelectorAll('.notification');
-        existingNotifications.forEach(notification => notification.remove());
+        existingNotifications.forEach(notification => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        });
 
         // Create notification element
         const notification = document.createElement('div');
